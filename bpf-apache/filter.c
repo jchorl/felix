@@ -37,11 +37,11 @@ CALI_BPF_INLINE static int extract_ports(__u32 len, struct iphdr * h,
 				return 1; // Or maybe drop the packet? It's broken anyways.
 			}
 
-			thdr = (void*)((__u64)(h) + sizeof(*h));
+			thdr = (void*)((__u32)(h) + sizeof(*h));
 			dport->port = port_to_host(thdr->dest);
 			break;
 		case IPPROTO_UDP:
-			uhdr = (void*)((__u64)(h) + sizeof(*h));
+			uhdr = (void*)((__u32)(h) + sizeof(*h));
 			dport->port = port_to_host(uhdr->dest);
 			break;
 		default:
@@ -79,7 +79,7 @@ enum xdp_action prefilter(struct xdp_md* xdp)
 	// Parse l4 protocols and ports.
 	// NOTE that this is a straightforward implementation that
 	// does not handle e.g. IPIP encapsulation.
-	ihdr = (void*)((__u64)(ehdr) + sizeof(*ehdr));
+	ihdr = (void*)((__u32)(ehdr) + sizeof(*ehdr));
 	if (extract_ports(xdp->data_end - xdp->data, ihdr, &dport)) {
 		// Check failsafe ports and XDP_PASS early
 		if (NULL != bpf_map_lookup_elem(&calico_failsafe_ports, &dport)) {
